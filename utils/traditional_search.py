@@ -125,17 +125,12 @@ class TraditionalSearchNote:
     @staticmethod
     def get_workflow_steps():
         return [
-            "1. Call search API (Google, Bing, SerpAPI)",
-            "2. Get URLs and short snippets",
-            "3. For each URL, you need to:",
-            "   - Scrape the page (requests, selenium)",
-            "   - Parse HTML (BeautifulSoup, lxml)",
-            "   - Extract main content (custom logic)",
-            "   - Clean and format text",
-            "   - Handle errors (404s, timeouts, paywalls)",
-            "4. Filter and rank extracted content",
-            "5. Optimize for LLM context window",
-            "6. Finally get RAG-ready content"
+            "Call search API (Google, Bing, SerpAPI)",
+            "Get URLs and short snippets",
+            "For each URL, you need to scrape the page (requests, selenium), parse HTML (BeautifulSoup, lxml), extract main content (custom logic), clean and format text and handle errors (404s, timeouts, paywalls)",
+            "Filter and rank extracted content",
+            "Optimize for LLM context window",
+            "Finally get RAG-ready content"
         ]
 
     @staticmethod
