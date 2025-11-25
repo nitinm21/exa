@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exa Search Comparison Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>exa_search_compare</h1>
+            <p class="subtitle">// demonstrating why Exa is better for AI agents and RAG</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="search-section">
+            <div class="search-box">
+                <h2>Compare Search Results</h2>
+                <p>Enter a query to compare Exa's RAG-ready results with traditional search snippets.</p>
+
+                <form id="searchForm">
+                    <div class="input-group">
+                        <input type="text" name="query" id="queryInput" placeholder="What is RAG in AI?" required>
+                        <button type="submit">Execute</button>
+                    </div>
+                    <div class="form-options">
+                        <label>
+                            Max results:
+                            <select name="max_results" id="maxResults">
+                                <option value="3">3</option>
+                                <option value="5" selected>5</option>
+                                <option value="10">10</option>
+                            </select>
+                        </label>
+                    </div>
+                </form>
+
+                <div class="example-queries">
+                    <p class="example-label">// example queries</p>
+                    <div class="example-chips">
+                        <button type="button" class="example-chip" data-query="What does Anthropic do and who founded it">What does Anthropic do and who founded it</button>
+                        <button type="button" class="example-chip" data-query="Latest news about Tesla Cybertruck production">Latest news about Tesla Cybertruck production</button>
+                        <button type="button" class="example-chip" data-query="Competitors to Notion in the productivity space">Competitors to Notion in the productivity space</button>
+                        <button type="button" class="example-chip" data-query="Who are the major investors in OpenAI">Who are the major investors in OpenAI</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Searching and analyzing results</p>
+        </div>
+
+        <div id="error" class="error hidden"></div>
+
+        <section id="resultsSection" class="results-section hidden">
+            <div class="comparison-header">
+                <h3>Results for "<span id="searchQuery"></span>"</h3>
+            </div>
+
+            <!-- Token Comparison Dashboard -->
+            <div id="tokenDashboard" class="token-dashboard">
+                <div class="dashboard-header">
+                    <span class="dashboard-label">// TOKEN COMPARISON</span>
+                </div>
+                <div class="token-comparison-visual">
+                    <div class="token-side exa-side">
+                        <span class="token-label">Exa</span>
+                        <div class="token-bar-large">
+                            <div class="token-bar-fill-large" id="exaTokenBar"></div>
+                        </div>
+                        <span class="token-value" id="exaTokenValue">0</span>
+                    </div>
+                    <div class="token-ratio">
+                        <span class="ratio-value" id="tokenRatioLarge">0x</span>
+                        <span class="ratio-label">more content</span>
+                    </div>
+                    <div class="token-side traditional-side">
+                        <span class="token-label">Traditional</span>
+                        <div class="token-bar-large">
+                            <div class="token-bar-fill-large" id="traditionalTokenBar"></div>
+                        </div>
+                        <span class="token-value" id="traditionalTokenValue">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-grid">
+                <!-- Exa Column -->
+                <div class="comparison-column exa-column">
+                    <div class="column-header">
+                        <div class="header-left">
+                            <h3>Exa</h3>
+                            <span class="badge success">Agent-Ready</span>
+                        </div>
+                        <div class="header-stats">
+                            <span class="stat-row"><strong id="exaTotalTokens">0</strong> <span class="stat-label-small">tokens total</span></span>
+                            <span class="stat-row"><strong id="exaAvgTokens">0</strong> <span class="stat-label-small">avg per result</span></span>
+                        </div>
+                    </div>
+
+                    <div id="exaAnswer" class="answer-section hidden">
+                        <h4>AI-Generated Summary</h4>
+                        <p class="answer-content"></p>
+                    </div>
+
+                    <div id="exaResults" class="results-list">
+                        <!-- Results will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Traditional Search Column -->
+                <div class="comparison-column traditional-column">
+                    <div class="column-header">
+                        <div class="header-left">
+                            <h3>Traditional Search</h3>
+                            <span class="badge warning">Needs Scraping</span>
+                        </div>
+                        <div class="header-stats">
+                            <span class="stat-row"><strong id="traditionalTotalTokens">0</strong> <span class="stat-label-small">tokens total</span></span>
+                            <span class="stat-row"><strong id="traditionalAvgTokens">0</strong> <span class="stat-label-small">avg per result</span></span>
+                        </div>
+                    </div>
+
+                    <div class="warning-box">
+                        Traditional search APIs only return URLs and short snippets. To get full content for RAG, you'd need to scrape each URL.
+                    </div>
+
+                    <div id="traditionalResults" class="results-list">
+                        <!-- Results will be inserted here -->
+                    </div>
+
+                    <div id="workflowBox" class="workflow-box">
+                        <h4>What you'd need to do</h4>
+                        <ol id="workflowSteps">
+                            <!-- Steps will be inserted here -->
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights Section -->
+            <section class="insights-section">
+                <h3>Why Exa is Better for your AI Agent</h3>
+                <div class="insight-grid">
+                    <div class="insight-card">
+                        <h4>Token Efficiency</h4>
+                        <span class="highlight" id="tokenRatio">0x</span>
+                        <p class="detail">more content tokens than traditional search snippets</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Context Window</h4>
+                        <span class="highlight" id="contextFit">0</span>
+                        <p class="detail">full articles fit in a 4K context window</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Developer Experience</h4>
+                        <span class="highlight">1 API Call</span>
+                        <p class="detail">vs. N+1 calls with traditional search + scraping</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>RAG Readiness</h4>
+                        <span class="highlight">Instant</span>
+                        <p class="detail">content ready to embed, no extraction needed</p>
+                    </div>
+                </div>
+            </section>
+
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>// Built to demonstrate Exa's Search API advantages for RAG applications</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.getElementById('searchForm');
+            const queryInput = document.getElementById('queryInput');
+            const maxResults = document.getElementById('maxResults');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const resultsSection = document.getElementById('resultsSection');
+            const exampleChips = document.querySelectorAll('.example-chip');
+
+            // Handle example chip clicks
+            exampleChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    queryInput.value = this.dataset.query;
+                    searchForm.dispatchEvent(new Event('submit'));
+                });
+            });
+
+            // Handle form submission
+            searchForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const query = queryInput.value.trim();
+                if (!query) return;
+
+                // Show loading, hide results and error
+                loading.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+                error.classList.add('hidden');
+
+                try {
+                    const formData = new FormData();
+                    formData.append('query', query);
+                    formData.append('max_results', maxResults.value);
+
+                    const response = await fetch('/compare', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Search failed');
+                    }
+
+                    // Render results
+                    renderResults(data);
+
+                } catch (err) {
+                    error.textContent = err.message;
+                    error.classList.remove('hidden');
+                } finally {
+                    loading.classList.add('hidden');
+                }
+            });
+
+            function renderResults(data) {
+                // Update query display
+                document.getElementById('searchQuery').textContent = data.query;
+
+                // Render Exa results
+                renderExaResults(data.exa);
+
+                // Render Traditional results
+                renderTraditionalResults(data.traditional);
+
+                // Update comparison insights
+                updateInsights(data.comparison, data.exa.metrics, data.traditional.metrics);
+
+                // Update token comparison dashboard
+                updateTokenDashboard(data.exa.metrics, data.traditional.metrics, data.comparison);
+
+                // Show results section
+                resultsSection.classList.remove('hidden');
+
+                // Smooth scroll to results with slight delay for animation
+                setTimeout(() => {
+                    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+
+            function updateTokenDashboard(exaMetrics, traditionalMetrics, comparison) {
+                const exaTokens = exaMetrics.total_content_tokens;
+                const traditionalTokens = traditionalMetrics.total_snippet_tokens;
+                const maxTokens = Math.max(exaTokens, traditionalTokens);
+                const ratio = comparison.token_advantage.ratio;
+
+                // Update values with animation
+                animateValue('exaTokenValue', 0, exaTokens, 600);
+                animateValue('traditionalTokenValue', 0, traditionalTokens, 600);
+
+                // Update bars with delay for effect
+                setTimeout(() => {
+                    const exaBar = document.getElementById('exaTokenBar');
+                    const traditionalBar = document.getElementById('traditionalTokenBar');
+
+                    exaBar.style.width = `${(exaTokens / maxTokens) * 100}%`;
+                    traditionalBar.style.width = `${(traditionalTokens / maxTokens) * 100}%`;
+                }, 100);
+
+                // Update ratio
+                document.getElementById('tokenRatioLarge').textContent = ratio > 0 ? `${ratio.toFixed(1)}x` : 'N/A';
+            }
+
+            function animateValue(elementId, start, end, duration) {
+                const element = document.getElementById(elementId);
+                const startTime = performance.now();
+
+                function update(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    // Ease out cubic
+                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.round(start + (end - start) * easeProgress);
+
+                    element.textContent = current.toLocaleString();
+
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    }
+                }
+
+                requestAnimationFrame(update);
+            }
+
+            function renderExaResults(exa) {
+                const metrics = exa.metrics;
+                const results = exa.results;
+                const aiAnswer = exa.ai_answer;
+
+                // Update stats in header
+                document.getElementById('exaTotalTokens').textContent = metrics.total_content_tokens.toLocaleString();
+                document.getElementById('exaAvgTokens').textContent = Math.round(metrics.avg_tokens_per_result).toLocaleString();
+
+                // Show AI-generated answer from Exa's Answer API
+                const answerSection = document.getElementById('exaAnswer');
+                if (aiAnswer && aiAnswer.answer) {
+                    answerSection.querySelector('.answer-content').textContent = aiAnswer.answer;
+                    answerSection.classList.remove('hidden');
+                } else {
+                    answerSection.classList.add('hidden');
+                }
+
+                // Calculate max tokens for bar visualization
+                const maxTokens = Math.max(...metrics.results.map(r => r.content_tokens));
+
+                // Render result cards with token bars
+                const resultsContainer = document.getElementById('exaResults');
+                resultsContainer.innerHTML = results.results.map((result, index) => {
+                    const tokenPercent = (metrics.results[index].content_tokens / maxTokens) * 100;
+                    return `
+                    <div class="result-card">
+                        <h4>${escapeHtml(result.title)}</h4>
+                        <a href="${escapeHtml(result.url)}" class="result-url" target="_blank">${escapeHtml(result.url)}</a>
+                        <div class="result-meta">
+                            <span class="badge success">${metrics.results[index].content_tokens.toLocaleString()} tokens</span>
+                            <span class="badge success">${metrics.results[index].content_length.toLocaleString()} chars</span>
+                            ${result.published_date ? `<span class="badge">${escapeHtml(result.published_date)}</span>` : ''}
+                        </div>
+                        <p class="result-content">${escapeHtml(truncateText(result.content, 500))}</p>
+                        <div class="token-bar">
+                            <div class="token-bar-fill" style="width: ${tokenPercent}%"></div>
+                        </div>
+                    </div>
+                `}).join('');
+            }
+
+            function renderTraditionalResults(traditional) {
+                const metrics = traditional.metrics;
+                const results = traditional.results;
+
+                // Update stats in header
+                document.getElementById('traditionalTotalTokens').textContent = metrics.total_snippet_tokens.toLocaleString();
+                document.getElementById('traditionalAvgTokens').textContent = Math.round(metrics.avg_tokens_per_result).toLocaleString();
+
+                // Calculate max tokens for bar visualization
+                const maxTokens = Math.max(...metrics.results.map(r => r.snippet_tokens));
+
+                // Render result cards with token bars
+                const resultsContainer = document.getElementById('traditionalResults');
+                resultsContainer.innerHTML = results.results.map((result, index) => {
+                    const tokenPercent = (metrics.results[index].snippet_tokens / maxTokens) * 100;
+                    return `
+                    <div class="result-card">
+                        <h4>${escapeHtml(result.title)}</h4>
+                        <a href="${escapeHtml(result.url)}" class="result-url" target="_blank">${escapeHtml(result.url)}</a>
+                        <div class="result-meta">
+                            <span class="badge warning">${metrics.results[index].snippet_tokens} tokens</span>
+                            <span class="badge warning">Snippet only</span>
+                        </div>
+                        <p class="result-snippet">${escapeHtml(result.snippet)}</p>
+                        <div class="token-bar">
+                            <div class="token-bar-fill" style="width: ${tokenPercent}%"></div>
+                        </div>
+                    </div>
+                `}).join('');
+
+                // Render workflow steps
+                const workflowSteps = document.getElementById('workflowSteps');
+                workflowSteps.innerHTML = traditional.workflow_steps.map(step =>
+                    `<li>${escapeHtml(step)}</li>`
+                ).join('');
+            }
+
+            function updateInsights(comparison, exaMetrics, traditionalMetrics) {
+                // Token ratio
+                const ratio = comparison.token_advantage.ratio;
+                document.getElementById('tokenRatio').textContent = ratio > 0 ? `${ratio.toFixed(1)}x` : 'N/A';
+
+                // Context fit
+                document.getElementById('contextFit').textContent = comparison.context_efficiency.exa_4k_results;
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function truncateText(text, maxLength) {
+                if (!text) return '';
+                if (text.length <= maxLength) return text;
+                return text.substring(0, maxLength) + '...';
+            }
+        });
+    </script>
+</body>
+</html>
